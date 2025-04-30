@@ -1,0 +1,2 @@
+// List all collections in the database
+db.getCollectionNames() 
