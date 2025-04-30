@@ -1,2 +1,2 @@
-// List all collections in the database
-db.getCollectionNames() 
+// muslimvie
+db.school.deleteMany({ name: "Holberton school" });
