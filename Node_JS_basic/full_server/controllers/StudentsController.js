@@ -13,7 +13,7 @@ export class StudentsController {
         response += `Number of students in ${field}: ${count}. List: ${list}\n`;
       });
       
-      res.status(200).send(response);
+      res.status(200).send(response.trim());
     } catch (error) {
       res.status(500).send('Cannot load the database');
     }

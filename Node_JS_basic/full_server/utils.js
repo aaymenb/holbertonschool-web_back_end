@@ -20,6 +20,11 @@ export const readDatabase = (filePath) => {
         students[field].push(firstname);
       }
 
+      // Sort students in each field
+      Object.keys(students).forEach(field => {
+        students[field].sort();
+      });
+
       resolve(students);
     });
   });
