@@ -2,11 +2,6 @@ import fs from 'fs';
 
 export const readDatabase = (filePath) => {
   return new Promise((resolve, reject) => {
-    if (!filePath) {
-      reject(new Error('Cannot load the database'));
-      return;
-    }
-
     fs.readFile(filePath, 'utf-8', (err, data) => {
       if (err) {
         reject(new Error('Cannot load the database'));

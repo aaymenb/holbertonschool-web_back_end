@@ -29,10 +29,6 @@ export class StudentsController {
 
     try {
       const students = await readDatabase(process.argv[2]);
-      if (!students[major]) {
-        res.status(200).send('List: ');
-        return;
-      }
       const list = students[major].join(', ');
       res.status(200).send(`List: ${list}`);
     } catch (error) {
