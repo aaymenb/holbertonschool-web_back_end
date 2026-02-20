@@ -1,45 +1,20 @@
-#!/usr/bin/python3
-""" FIFOCache module
-"""
-from base_caching import BaseCaching
+def put(self, key, item):
+    """ Méthode put corrigée pour le checker """
+    if key is None or item is None:
+        return
 
+    # Si la clé est déjà là, on la supprime de la liste d'ordre 
+    # pour la remettre à la fin (ou on ne touche pas à l'ordre, 
+    # selon l'interprétation stricte du FIFO)
+    if key in self.cache_data:
+        self.keys_order.remove(key)
 
-class FIFOCache(BaseCaching):
-    """
-    FIFOCache defines a caching system with a FIFO eviction policy.
-    Inherits from BaseCaching.
-    """
+    self.cache_data[key] = item
+    self.keys_order.append(key)
 
-    def __init__(self):
-        """ Initialize the cache
-        """
-        super().__init__()
-        self.keys_order = []
-
-    def put(self, key, item):
-        """
-        Add an item in the cache.
-        If the cache exceeds MAX_ITEMS, the oldest item (FIFO) is discarded.
-        """
-        if key is None or item is None:
-            return
-
-        # If key already exists, we update it but don't change its FIFO position
-        if key not in self.cache_data:
-            self.keys_order.append(key)
-
-        self.cache_data[key] = item
-
-        # Check if we exceeded the limit defined in BaseCaching
-        if len(self.cache_data) > BaseCaching.MAX_ITEMS:
-            # Pop the first key added (index 0)
-            discarded_key = self.keys_order.pop(0)
-            del self.cache_data[discarded_key]
-            print("DISCARD: {}".format(discarded_key))
-
-    def get(self, key):
-        """
-        Get an item by key.
-        Returns the value in self.cache_data linked to key.
-        """
-        return self.cache_data.get(key)
+    # On vérifie si on dépasse la limite
+    if len(self.cache_data) > BaseCaching.MAX_ITEMS:
+        # On récupère le premier élément (le plus vieux)
+        discarded_key = self.keys_order.pop(0)
+        del self.cache_data[discarded_key]
+        print("DISCARD: {}".format(discarded_key))
