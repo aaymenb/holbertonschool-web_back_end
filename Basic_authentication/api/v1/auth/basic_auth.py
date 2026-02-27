@@ -57,7 +57,6 @@ class BasicAuth(Auth):
             return None
         if user_pwd is None or not isinstance(user_pwd, str):
             return None
-        UserModel = None
         try:
             from models.user import User as UserModel
         except ImportError:
@@ -67,7 +66,8 @@ class BasicAuth(Auth):
             basic_auth = os.path.abspath(
                 os.path.join(file_dir, '..', '..', '..'))
             repo_root = os.path.dirname(basic_auth)
-            paths_to_try = [repo_root, basic_auth]
+            current_dir = os.getcwd()
+            paths_to_try = [repo_root, basic_auth, current_dir]
             for path in paths_to_try:
                 if path and path not in sys.path:
                     sys.path.insert(0, path)
@@ -75,8 +75,6 @@ class BasicAuth(Auth):
                 from models.user import User as UserModel
             except ImportError:
                 return None
-        if UserModel is None:
-            return None
         try:
             users = UserModel.search(email=user_email)
         except Exception:
@@ -93,22 +91,19 @@ class BasicAuth(Auth):
 
     def current_user(self, request=None) -> User:
         """Retrieves the User instance for a request"""
-        try:
-            auth_header = self.authorization_header(request)
-            if auth_header is None:
-                return None
-            base64_header = self.extract_base64_authorization_header(
-                auth_header)
-            if base64_header is None:
-                return None
-            decoded_header = self.decode_base64_authorization_header(
-                base64_header)
-            if decoded_header is None:
-                return None
-            user_email, user_pwd = self.extract_user_credentials(
-                decoded_header)
-            if user_email is None or user_pwd is None:
-                return None
-            return self.user_object_from_credentials(user_email, user_pwd)
-        except Exception:
+        auth_header = self.authorization_header(request)
+        if auth_header is None:
             return None
+        base64_header = self.extract_base64_authorization_header(
+            auth_header)
+        if base64_header is None:
+            return None
+        decoded_header = self.decode_base64_authorization_header(
+            base64_header)
+        if decoded_header is None:
+            return None
+        user_email, user_pwd = self.extract_user_credentials(
+            decoded_header)
+        if user_email is None or user_pwd is None:
+            return None
+        return self.user_object_from_credentials(user_email, user_pwd)
