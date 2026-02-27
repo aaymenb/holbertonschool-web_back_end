@@ -59,10 +59,16 @@ class BasicAuth(Auth):
             return None
         import sys
         import os
+        # Find models: try script dir (main_4.py) and its parent
+        paths_to_add = []
+        if '__main__' in sys.modules and hasattr(sys.modules['__main__'], '__file__'):
+            main_file = sys.modules['__main__'].__file__
+            script_dir = os.path.dirname(os.path.abspath(main_file))
+            paths_to_add.extend([script_dir, os.path.dirname(script_dir)])
         file_dir = os.path.dirname(os.path.abspath(__file__))
         basic_auth = os.path.abspath(os.path.join(file_dir, '..', '..', '..'))
-        repo_root = os.path.dirname(basic_auth)
-        for path in [repo_root, basic_auth]:
+        paths_to_add.extend([basic_auth, os.path.dirname(basic_auth)])
+        for path in paths_to_add:
             if path and path not in sys.path:
                 sys.path.insert(0, path)
         from models.user import User as UserModel
