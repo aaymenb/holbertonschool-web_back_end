@@ -57,42 +57,52 @@ class BasicAuth(Auth):
             return None
         if user_pwd is None or not isinstance(user_pwd, str):
             return None
-        import sys
-        import os
-        # Find models: try script dir (main_4.py) and its parent
-        paths_to_add = []
-        if '__main__' in sys.modules and hasattr(sys.modules['__main__'],
-                                                  '__file__'):
-            main_file = sys.modules['__main__'].__file__
-            script_dir = os.path.dirname(os.path.abspath(main_file))
-            paths_to_add.extend([script_dir, os.path.dirname(script_dir)])
-        file_dir = os.path.dirname(os.path.abspath(__file__))
-        basic_auth = os.path.abspath(os.path.join(file_dir, '..', '..', '..'))
-        paths_to_add.extend([basic_auth, os.path.dirname(basic_auth)])
-        for path in paths_to_add:
-            if path and path not in sys.path:
-                sys.path.insert(0, path)
-        from models.user import User as UserModel
-        users = UserModel.search(email=user_email)
-        if not users:
+        try:
+            import sys
+            import os
+            # Find models: try script dir (main_4.py) and its parent
+            paths_to_add = []
+            if '__main__' in sys.modules and hasattr(sys.modules['__main__'],
+                                                      '__file__'):
+                main_file = sys.modules['__main__'].__file__
+                script_dir = os.path.dirname(os.path.abspath(main_file))
+                paths_to_add.extend([script_dir, os.path.dirname(script_dir)])
+            file_dir = os.path.dirname(os.path.abspath(__file__))
+            basic_auth = os.path.abspath(os.path.join(file_dir, '..', '..',
+                                                       '..'))
+            paths_to_add.extend([basic_auth, os.path.dirname(basic_auth)])
+            for path in paths_to_add:
+                if path and path not in sys.path:
+                    sys.path.insert(0, path)
+            from models.user import User as UserModel
+            users = UserModel.search(email=user_email)
+            if not users:
+                return None
+            user = users[0]
+            if not user.is_valid_password(user_pwd):
+                return None
+            return user
+        except Exception:
             return None
-        user = users[0]
-        if not user.is_valid_password(user_pwd):
-            return None
-        return user
 
     def current_user(self, request=None) -> User:
         """Retrieves the User instance for a request"""
-        auth_header = self.authorization_header(request)
-        if auth_header is None:
+        try:
+            auth_header = self.authorization_header(request)
+            if auth_header is None:
+                return None
+            base64_header = self.extract_base64_authorization_header(
+                auth_header)
+            if base64_header is None:
+                return None
+            decoded_header = self.decode_base64_authorization_header(
+                base64_header)
+            if decoded_header is None:
+                return None
+            user_email, user_pwd = self.extract_user_credentials(
+                decoded_header)
+            if user_email is None or user_pwd is None:
+                return None
+            return self.user_object_from_credentials(user_email, user_pwd)
+        except Exception:
             return None
-        base64_header = self.extract_base64_authorization_header(auth_header)
-        if base64_header is None:
-            return None
-        decoded_header = self.decode_base64_authorization_header(base64_header)
-        if decoded_header is None:
-            return None
-        user_email, user_pwd = self.extract_user_credentials(decoded_header)
-        if user_email is None or user_pwd is None:
-            return None
-        return self.user_object_from_credentials(user_email, user_pwd)
