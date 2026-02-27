@@ -57,36 +57,30 @@ class BasicAuth(Auth):
             return None
         if user_pwd is None or not isinstance(user_pwd, str):
             return None
+        import sys
+        import os
+        file_dir = os.path.dirname(os.path.abspath(__file__))
+        basic_auth = os.path.abspath(
+            os.path.join(file_dir, '..', '..', '..'))
+        repo_root = os.path.dirname(basic_auth)
+        parent_root = os.path.dirname(repo_root)
+        current_dir = os.getcwd()
+        paths_to_try = [repo_root, basic_auth, current_dir, parent_root]
+        for path in paths_to_try:
+            if path and path not in sys.path:
+                sys.path.insert(0, path)
         try:
             from models.user import User as UserModel
         except ImportError:
-            import sys
-            import os
-            file_dir = os.path.dirname(os.path.abspath(__file__))
-            basic_auth = os.path.abspath(
-                os.path.join(file_dir, '..', '..', '..'))
-            repo_root = os.path.dirname(basic_auth)
-            parent_root = os.path.dirname(repo_root)
-            current_dir = os.getcwd()
-            paths_to_try = [repo_root, basic_auth, current_dir, parent_root]
-            for path in paths_to_try:
-                if path and path not in sys.path:
-                    sys.path.insert(0, path)
-            try:
-                from models.user import User as UserModel
-            except ImportError:
-                return None
+            return None
         try:
-            users = UserModel.search(**{'email': user_email})
+            users = UserModel.search(email=user_email)
         except Exception:
             return None
         if not users or len(users) == 0:
             return None
         user = users[0]
-        try:
-            if not user.is_valid_password(user_pwd):
-                return None
-        except Exception:
+        if not user.is_valid_password(user_pwd):
             return None
         return user
 
