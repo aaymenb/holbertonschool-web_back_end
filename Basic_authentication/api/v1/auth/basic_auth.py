@@ -66,8 +66,9 @@ class BasicAuth(Auth):
             basic_auth = os.path.abspath(
                 os.path.join(file_dir, '..', '..', '..'))
             repo_root = os.path.dirname(basic_auth)
+            parent_root = os.path.dirname(repo_root)
             current_dir = os.getcwd()
-            paths_to_try = [repo_root, basic_auth, current_dir]
+            paths_to_try = [repo_root, basic_auth, current_dir, parent_root]
             for path in paths_to_try:
                 if path and path not in sys.path:
                     sys.path.insert(0, path)
