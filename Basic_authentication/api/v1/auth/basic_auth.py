@@ -59,12 +59,10 @@ class BasicAuth(Auth):
             return None
         import sys
         import os
-        # Add possible model locations to path (Basic_authentication or repo root)
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        basic_auth_dir = os.path.dirname(os.path.dirname(
-            os.path.dirname(current_dir)))
-        repo_root = os.path.dirname(basic_auth_dir)
-        for path in [repo_root, basic_auth_dir]:
+        file_dir = os.path.dirname(os.path.abspath(__file__))
+        basic_auth = os.path.abspath(os.path.join(file_dir, '..', '..', '..'))
+        repo_root = os.path.dirname(basic_auth)
+        for path in [repo_root, basic_auth]:
             if path and path not in sys.path:
                 sys.path.insert(0, path)
         from models.user import User as UserModel
