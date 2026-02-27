@@ -39,7 +39,7 @@ class BasicAuth(Auth):
 
     def extract_user_credentials(
             self, decoded_base64_authorization_header: str) -> (str, str):
-        """Returns the user email and password from the Base64 decoded value"""
+        """Returns user email and password from Base64 decoded value"""
         if decoded_base64_authorization_header is None:
             return (None, None)
         if not isinstance(decoded_base64_authorization_header, str):
@@ -57,42 +57,39 @@ class BasicAuth(Auth):
             return None
         if user_pwd is None or not isinstance(user_pwd, str):
             return None
+        UserModel = None
         try:
+            from models.user import User as UserModel
+        except ImportError:
             import sys
             import os
-            # Find models: try script dir (main_4.py) and its parent
-            paths_to_add = []
-            if '__main__' in sys.modules and hasattr(sys.modules['__main__'],
-                                                      '__file__'):
-                main_file = sys.modules['__main__'].__file__
-                script_dir = os.path.dirname(os.path.abspath(main_file))
-                paths_to_add.extend([script_dir, os.path.dirname(script_dir)])
             file_dir = os.path.dirname(os.path.abspath(__file__))
-            basic_auth = os.path.abspath(os.path.join(file_dir, '..', '..',
-                                                       '..'))
-            paths_to_add.extend([basic_auth, os.path.dirname(basic_auth)])
-            for path in paths_to_add:
+            basic_auth = os.path.abspath(
+                os.path.join(file_dir, '..', '..', '..'))
+            repo_root = os.path.dirname(basic_auth)
+            paths_to_try = [repo_root, basic_auth]
+            for path in paths_to_try:
                 if path and path not in sys.path:
                     sys.path.insert(0, path)
             try:
                 from models.user import User as UserModel
             except ImportError:
                 return None
-            try:
-                users = UserModel.search(**{'email': user_email})
-            except Exception:
-                return None
-            if not users or len(users) == 0:
-                return None
-            user = users[0]
-            try:
-                if not user.is_valid_password(user_pwd):
-                    return None
-            except Exception:
-                return None
-            return user
+        if UserModel is None:
+            return None
+        try:
+            users = UserModel.search(email=user_email)
         except Exception:
             return None
+        if not users or len(users) == 0:
+            return None
+        user = users[0]
+        try:
+            if not user.is_valid_password(user_pwd):
+                return None
+        except Exception:
+            return None
+        return user
 
     def current_user(self, request=None) -> User:
         """Retrieves the User instance for a request"""
