@@ -77,7 +77,7 @@ class BasicAuth(Auth):
             except ImportError:
                 return None
         try:
-            users = UserModel.search(email=user_email)
+            users = UserModel.search(**{'email': user_email})
         except Exception:
             return None
         if not users or len(users) == 0:
