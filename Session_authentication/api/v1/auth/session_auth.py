@@ -28,3 +28,17 @@ class SessionAuth(Auth):
         if not isinstance(session_id, str):
             return None
         return self.user_id_by_session_id.get(session_id)
+
+    def current_user(self, request=None):
+        """Returns the User instance based on session cookie"""
+        session_id = self.session_cookie(request)
+        if session_id is None:
+            return None
+        user_id = self.user_id_for_session_id(session_id)
+        if user_id is None:
+            return None
+        from models.user import User
+        users = User.search(**{'id': user_id})
+        if not users:
+            return None
+        return users[0]

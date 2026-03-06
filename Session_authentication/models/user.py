@@ -31,3 +31,9 @@ class User(Base):
         if not pwd or not self.password:
             return False
         return pwd == self.password
+
+    def to_json(self):
+        """Return dictionary representation for JSON serialization"""
+        d = self.to_dict()
+        d.pop('password', None)
+        return d
