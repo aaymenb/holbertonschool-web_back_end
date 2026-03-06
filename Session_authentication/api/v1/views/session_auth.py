@@ -41,7 +41,4 @@ def logout():
     from api.v1.app import auth
     if not auth.destroy_session(request):
         abort(404)
-    response = make_response(jsonify({}))
-    session_name = getenv("SESSION_NAME", "_my_session_id")
-    response.delete_cookie(session_name, path='/')
-    return response
+    return jsonify({}), 200
