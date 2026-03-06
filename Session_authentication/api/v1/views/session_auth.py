@@ -3,7 +3,7 @@
 Session authentication views
 """
 from os import getenv
-from flask import jsonify, request, make_response
+from flask import jsonify, request, make_response, abort
 from api.v1.views import app_views
 from models.user import User
 
@@ -31,3 +31,14 @@ def login():
     session_name = getenv("SESSION_NAME", "_my_session_id")
     response.set_cookie(session_name, session_id, path='/')
     return response
+
+
+@app_views.route('/auth_session/logout', methods=['DELETE'], strict_slashes=False)
+def logout():
+    """DELETE /api/v1/auth_session/logout
+    Handle session logout
+    """
+    from api.v1.app import auth
+    if not auth.destroy_session(request):
+        abort(404)
+    return jsonify({}), 200
