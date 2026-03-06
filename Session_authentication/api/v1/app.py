@@ -31,7 +31,8 @@ def before_request():
         return
     request.current_user = auth.current_user(request)
     exempt_paths = ['/api/v1/status/', '/api/v1/unauthorized/',
-                    '/api/v1/forbidden/', '/api/v1/auth_session/login/']
+                    '/api/v1/forbidden/', '/api/v1/auth_session/login/',
+                    '/api/v1/auth_session/logout/']
     if not auth.require_auth(request.path, exempt_paths):
         return
     if auth.authorization_header(request) is None and \

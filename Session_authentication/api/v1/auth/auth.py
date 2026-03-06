@@ -41,7 +41,3 @@ class Auth:
             return None
         session_name = getenv("SESSION_NAME", "_my_session_id")
         return request.cookies.get(session_name)
-
-    def destroy_session(self, request=None):
-        """Destroys the user session - returns False for base Auth"""
-        return False
