@@ -1,51 +1,24 @@
 #!/usr/bin/env python3
-"""
-DB module for handling user database operations
-"""
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.orm.session import Session
-from user import Base, User
+"""SQLAlchemy User model."""
+
+from typing import Any
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.orm import declarative_base
+
+Base = declarative_base()
 
 
-class DB:
-    """
-    DB class to interact with the database
-    """
+class User(Base):
+    """User table mapped to 'users'."""
 
-    def __init__(self) -> None:
-        """
-        Initialize a new DB instance
-        """
-        self._engine = create_engine("sqlite:///a.db", echo=False)
-        Base.metadata.drop_all(self._engine)
-        Base.metadata.create_all(self._engine)
-        self.__session = None
+    __tablename__ = "users"
 
-    @property
-    def _session(self) -> Session:
-        """
-        Memoized session object
-        """
-        if self.__session is None:
-            DBSession = sessionmaker(bind=self._engine)
-            self.__session = DBSession()
-        return self.__session
+    id = Column(Integer, primary_key=True)
+    email = Column(String(250), nullable=False)
+    hashed_password = Column(String(250), nullable=False)
+    session_id = Column(String(250), nullable=True)
+    reset_token = Column(String(250), nullable=True)
 
-    def add_user(self, email: str, hashed_password: str) -> User:
-        """
-        Creates and saves a new user to the database.
-
-        Args:
-            email (str): The user's email address.
-            hashed_password (str): The hashed password string.
-
-        Returns:
-            User: The newly created User object.
-        """
-        new_user = User(email=email, hashed_password=hashed_password)
-        self._session.add(new_user)
-        self._session.commit()
-        self._session.refresh(new_user)
-        return new_user
+    def __repr__(self) -> str:
+        """Return debug representation."""
+        return f"<User id={self.id} email={self.email!r}>"
