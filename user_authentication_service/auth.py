@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Authentication module
+Authentication module containing password hashing logic
 """
 import bcrypt
 
@@ -10,16 +10,9 @@ def _hash_password(password: str) -> bytes:
     Hashes a password string using bcrypt.
 
     Args:
-        password (str): The password to hash.
+        password (str): The password string to hash.
 
     Returns:
-        bytes: The salted hash of the password.
+        bytes: The salted and hashed password.
     """
-    # Convert the string password to bytes
-    password_bytes = password.encode('utf-8')
-    
-    # Generate a salt and hash the password
-    salt = bcrypt.gensalt()
-    hashed_password = bcrypt.hashpw(password_bytes, salt)
-    
-    return hashed_password
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
