@@ -46,17 +46,7 @@ class DB:
 
     def find_user_by(self, **kwargs) -> User:
         """
-        Finds a user by specific keyword arguments.
-        
-        Args:
-            **kwargs: Keyword arguments (e.g., email="test@test.com")
-            
-        Returns:
-            The first User object found.
-            
-        Raises:
-            NoResultFound: if no user is found.
-            InvalidRequestError: if invalid arguments are passed.
+        Finds a user by keyword arguments
         """
         try:
             user = self._session.query(User).filter_by(**kwargs).one()
@@ -65,3 +55,21 @@ class DB:
             raise NoResultFound
         except Exception:
             raise InvalidRequestError
+
+    def update_user(self, user_id: int, **kwargs) -> None:
+        """
+        Updates a user's attributes.
+
+        Args:
+            user_id (int): The ID of the user to update.
+            **kwargs: Attributes to update.
+
+        Raises:
+            ValueError: If an invalid attribute is provided.
+        """
+        user = self.find_user_by(id=user_id)
+        for key, value in kwargs.items():
+            if not hasattr(user, key):
+                raise ValueError
+            setattr(user, key, value)
+        self._session.commit()
