@@ -1,37 +1,40 @@
 #!/usr/bin/env python3
 """
-Flask app module with user registration
+Flask app module
 """
-from flask import Flask, jsonify, request, abort
+from flask import Flask, jsonify, request, abort, make_response
 from auth import Auth
 
 app = Flask(__name__)
 AUTH = Auth()
 
 
-@app.route("/", methods=["GET"], strict_slashes=False)
-def welcome() -> str:
-    """
-    GET /
-    Return a welcome message.
-    """
-    return jsonify({"message": "Bienvenue"})
+# ... (previous routes: / and /users)
 
 
-@app.route("/users", methods=["POST"], strict_slashes=False)
-def users() -> str:
+@app.route("/sessions", methods=["POST"], strict_slashes=False)
+def login() -> str:
     """
-    POST /users
-    Registers a new user or returns an error if the email exists.
+    POST /sessions
+    Validates user credentials, creates a session, and sets a cookie.
     """
     email = request.form.get("email")
     password = request.form.get("password")
 
-    try:
-        AUTH.register_user(email, password)
-        return jsonify({"email": email, "message": "user created"})
-    except ValueError:
-        return jsonify({"message": "email already registered"}), 400
+    # 1. Check if the login is valid
+    if not AUTH.valid_login(email, password):
+        abort(401)
+
+    # 2. Create the session ID
+    session_id = AUTH.create_session(email)
+
+    # 3. Create the response with the JSON payload
+    response = make_response(jsonify({"email": email, "message": "logged in"}))
+
+    # 4. Set the cookie on the response object
+    response.set_cookie("session_id", session_id)
+
+    return response
 
 
 if __name__ == "__main__":
