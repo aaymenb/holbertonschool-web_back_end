@@ -1,41 +1,26 @@
-#!/usr/bin/env python3
-"""
-Flask app module
-"""
-from flask import Flask, jsonify, request, abort, make_response
-from auth import Auth
-
-app = Flask(__name__)
-AUTH = Auth()
-
-
-# ... (previous routes: / and /users)
-
-
 @app.route("/sessions", methods=["POST"], strict_slashes=False)
 def login() -> str:
     """
     POST /sessions
-    Validates user credentials, creates a session, and sets a cookie.
+    - Expects form data: "email", "password"
+    - Returns 401 if invalid
+    - Sets "session_id" cookie and returns JSON if valid
     """
     email = request.form.get("email")
     password = request.form.get("password")
 
-    # 1. Check if the login is valid
+    # Use the AUTH instance created at the module level
     if not AUTH.valid_login(email, password):
         abort(401)
 
-    # 2. Create the session ID
+    # Create session and capture the ID
     session_id = AUTH.create_session(email)
-
-    # 3. Create the response with the JSON payload
-    response = make_response(jsonify({"email": email, "message": "logged in"}))
-
-    # 4. Set the cookie on the response object
+    
+    # Prepare the JSON response
+    payload = {"email": email, "message": "logged in"}
+    response = make_response(jsonify(payload))
+    
+    # Set the cookie with the exact key "session_id"
     response.set_cookie("session_id", session_id)
-
+    
     return response
-
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port="5000")
