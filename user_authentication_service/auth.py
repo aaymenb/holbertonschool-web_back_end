@@ -3,7 +3,7 @@
 Authentication module containing password hashing and UUID generation
 """
 import bcrypt
-import uuid  # <--- Ajoute cet import
+import uuid
 from db import DB
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -17,10 +17,10 @@ def _hash_password(password: str) -> bytes:
 
 def _generate_uuid() -> str:
     """
-    Generates a random UUID and returns its string representation.
-    
+    Generate a random UUID.
+
     Returns:
-        str: A string representation of a new UUID4.
+        str: a string representation of a new UUID.
     """
     return str(uuid.uuid4())
 
@@ -29,4 +29,4 @@ class Auth:
     """
     Auth class to interact with the authentication database.
     """
-    # ... garde le reste de ta classe Auth ici ...
+    # ... Tes méthodes précédentes (register_user, valid_login, etc.)
