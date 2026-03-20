@@ -1,32 +1,23 @@
-#!/usr/bin/env python3
-"""
-Authentication module containing password hashing and UUID generation
-"""
-import bcrypt
-import uuid
-from db import DB
-from sqlalchemy.orm.exc import NoResultFound
+def create_session(self, email: str) -> str:
+        """
+        Creates a new session for the user with the given email.
 
+        Args:
+            email (str): The user's email.
 
-def _hash_password(password: str) -> bytes:
-    """
-    Hashes a password string using bcrypt.
-    """
-    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-
-
-def _generate_uuid() -> str:
-    """
-    Generate a random UUID.
-
-    Returns:
-        str: a string representation of a new UUID.
-    """
-    return str(uuid.uuid4())
-
-
-class Auth:
-    """
-    Auth class to interact with the authentication database.
-    """
-    # ... Tes méthodes précédentes (register_user, valid_login, etc.)
+        Returns:
+            str: The session ID (UUID) if the user exists, else None.
+        """
+        try:
+            # 1. Trouver l'utilisateur
+            user = self._db.find_user_by(email=email)
+            
+            # 2. Générer un nouvel UUID
+            session_id = _generate_uuid()
+            
+            # 3. Mettre à jour l'utilisateur dans la DB
+            self._db.update_user(user.id, session_id=session_id)
+            
+            return session_id
+        except NoResultFound:
+            return None
