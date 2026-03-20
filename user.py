@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-DB module
+DB module for handling user database operations
 """
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.session import Session
-from user import Base, User  # Assurez-vous d'importer User ici
+from user import Base, User
 
 
 class DB:
@@ -35,14 +35,14 @@ class DB:
 
     def add_user(self, email: str, hashed_password: str) -> User:
         """
-        Crée et enregistre un nouvel utilisateur dans la base de données.
-        
+        Creates and saves a new user to the database.
+
         Args:
-            email (str): L'email de l'utilisateur.
-            hashed_password (str): Le mot de passe haché.
-            
+            email (str): The user's email address.
+            hashed_password (str): The hashed password string.
+
         Returns:
-            User: L'objet utilisateur créé.
+            User: The newly created User object.
         """
         new_user = User(email=email, hashed_password=hashed_password)
         self._session.add(new_user)
