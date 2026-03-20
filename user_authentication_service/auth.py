@@ -4,6 +4,7 @@ Auth module
 """
 import bcrypt
 import uuid
+from typing import Optional  # Pour un type hinting plus précis
 from db import DB
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -33,34 +34,17 @@ class Auth:
         """
         self._db = DB()
 
-    def register_user(self, email: str, password: str):
-        """
-        Registers a user or raises ValueError if they exist
-        """
-        try:
-            self._db.find_user_by(email=email)
-            raise ValueError("User {} already exists".format(email))
-        except NoResultFound:
-            hashed_pw = _hash_password(password)
-            return self._db.add_user(email, hashed_pw.decode('utf-8'))
+    # ... (garder register_user et valid_login)
 
-    def valid_login(self, email: str, password: str) -> bool:
+    def create_session(self, email: str) -> Optional[str]:
         """
-        Check if the provided credentials are valid
-        """
-        try:
-            user = self._db.find_user_by(email=email)
-        except NoResultFound:
-            return False
+        Creates a new session ID for a user if they exist.
 
-        if bcrypt.checkpw(password.encode('utf-8'),
-                         user.hashed_password.encode('utf-8')):
-            return True
-        return False
+        Args:
+            email (str): The user email.
 
-    def create_session(self, email: str) -> str:
-        """
-        Create a session ID for a user
+        Returns:
+            Optional[str]: The session ID if user found, else None.
         """
         try:
             user = self._db.find_user_by(email=email)
