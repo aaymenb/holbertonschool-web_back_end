@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
 """
-DB module for user authentication service
+DB module
 """
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.session import Session
+from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.exc import InvalidRequestError
 from user import Base, User
 
 
 class DB:
     """
-    DB class to interact with the database
+    DB class
     """
 
     def __init__(self) -> None:
@@ -34,17 +36,32 @@ class DB:
 
     def add_user(self, email: str, hashed_password: str) -> User:
         """
-        Creates, saves, and returns a new User object.
-
-        Args:
-            email (str): The user email.
-            hashed_password (str): The hashed password.
-
-        Returns:
-            User: The saved User instance.
+        Adds a user to the database
         """
-        new_user = User(email=email, hashed_password=hashed_password)
-        self._session.add(new_user)
+        user = User(email=email, hashed_password=hashed_password)
+        self._session.add(user)
         self._session.commit()
-        self._session.refresh(new_user)
-        return new_user
+        self._session.refresh(user)
+        return user
+
+    def find_user_by(self, **kwargs) -> User:
+        """
+        Finds a user by specific keyword arguments.
+        
+        Args:
+            **kwargs: Keyword arguments (e.g., email="test@test.com")
+            
+        Returns:
+            The first User object found.
+            
+        Raises:
+            NoResultFound: if no user is found.
+            InvalidRequestError: if invalid arguments are passed.
+        """
+        try:
+            user = self._session.query(User).filter_by(**kwargs).one()
+            return user
+        except NoResultFound:
+            raise NoResultFound
+        except Exception:
+            raise InvalidRequestError
