@@ -1,23 +1,71 @@
-def create_session(self, email: str) -> str:
+#!/usr/bin/env python3
+"""
+Auth module
+"""
+import bcrypt
+import uuid
+from db import DB
+from sqlalchemy.orm.exc import NoResultFound
+
+
+def _hash_password(password: str) -> bytes:
+    """
+    Hashes a password string using bcrypt
+    """
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
+
+def _generate_uuid() -> str:
+    """
+    Generate a random UUID
+    """
+    return str(uuid.uuid4())
+
+
+class Auth:
+    """
+    Auth class to interact with the authentication database
+    """
+
+    def __init__(self):
         """
-        Creates a new session for the user with the given email.
+        Initialize Auth with a private DB instance
+        """
+        self._db = DB()
 
-        Args:
-            email (str): The user's email.
-
-        Returns:
-            str: The session ID (UUID) if the user exists, else None.
+    def register_user(self, email: str, password: str):
+        """
+        Registers a user or raises ValueError if they exist
         """
         try:
-            # 1. Trouver l'utilisateur
+            self._db.find_user_by(email=email)
+            raise ValueError("User {} already exists".format(email))
+        except NoResultFound:
+            hashed_pw = _hash_password(password)
+            return self._db.add_user(email, hashed_pw.decode('utf-8'))
+
+    def valid_login(self, email: str, password: str) -> bool:
+        """
+        Check if the provided credentials are valid
+        """
+        try:
             user = self._db.find_user_by(email=email)
-            
-            # 2. Générer un nouvel UUID
+        except NoResultFound:
+            return False
+
+        if bcrypt.checkpw(password.encode('utf-8'),
+                         user.hashed_password.encode('utf-8')):
+            return True
+        return False
+
+    def create_session(self, email: str) -> str:
+        """
+        Create a session ID for a user
+        """
+        try:
+            user = self._db.find_user_by(email=email)
             session_id = _generate_uuid()
-            
-            # 3. Mettre à jour l'utilisateur dans la DB
             self._db.update_user(user.id, session_id=session_id)
-            
             return session_id
         except NoResultFound:
             return None
