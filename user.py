@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
 """
-SQLAlchemy model for User
+Module pour le modèle User
 """
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 
+# 1. Création de la base déclarative comme expliqué dans votre texte
 Base = declarative_base()
 
-
+# 2. Définition de la classe User mappée à la table 'users'
 class User(Base):
     """
-    User class for a database table named users
+    Modèle SQLAlchemy pour la table 'users'
     """
     __tablename__ = 'users'
 
+    # Attributs demandés par l'exercice (et non par le tutoriel générique)
     id = Column(Integer, primary_key=True)
     email = Column(String(250), nullable=False)
     hashed_password = Column(String(250), nullable=False)
