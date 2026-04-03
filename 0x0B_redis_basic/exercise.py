@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-"""
-Module de gestion de cache Redis
-"""
+""" Module pour l'exercice Redis basic """
 import redis
 import uuid
 from typing import Union, Callable, Optional
@@ -9,10 +7,10 @@ from functools import wraps
 
 
 def count_calls(method: Callable) -> Callable:
-    """ Compte le nombre d'appels à une méthode """
+    """ Compte le nombre d'appels """
     @wraps(method)
     def wrapper(self, *args, **kwargs):
-        """ Incrémente et appelle la méthode d'origine """
+        """ Incrémente la clé dans Redis """
         key = method.__qualname__
         self._redis.incr(key)
         return method(self, *args, **kwargs)
@@ -20,10 +18,10 @@ def count_calls(method: Callable) -> Callable:
 
 
 def call_history(method: Callable) -> Callable:
-    """ Stocke l'historique des entrées et sorties """
+    """ Stocke l'historique des entrées/sorties """
     @wraps(method)
     def wrapper(self, *args, **kwargs):
-        """ Ajoute les inputs/outputs dans des listes Redis """
+        """ Ajoute les arguments et le résultat dans des listes """
         input_key = f"{method.__qualname__}:inputs"
         output_key = f"{method.__qualname__}:outputs"
 
@@ -36,42 +34,39 @@ def call_history(method: Callable) -> Callable:
 
 
 def replay(method: Callable):
-    """ Affiche l'historique complet des appels """
-    # Récupération de l'instance redis via la méthode liée
+    """ Affiche l'historique des appels d'une fonction """
+    # Accès à l'instance redis via la méthode liée
     r = method.__self__._redis
-    name = method.__qualname__
+    method_name = method.__qualname__
     
-    # Récupération des données
-    inputs = r.lrange(f"{name}:inputs", 0, -1)
-    outputs = r.lrange(f"{name}:outputs", 0, -1)
+    inputs = r.lrange(f"{method_name}:inputs", 0, -1)
+    outputs = r.lrange(f"{method_name}:outputs", 0, -1)
     
-    # Affichage de l'en-tête (Vérifiez bien le texte exact)
-    print(f"{name} was called {len(inputs)} times:")
+    # Formatage strict : "Cache.store was called X times:"
+    print(f"{method_name} was called {len(inputs)} times:")
     
-    # Boucle de rendu
     for inp, out in zip(inputs, outputs):
-        # On décode les bytes retournés par Redis
-        # On ajoute manuellement l'astérisque '*' avant les parenthèses de l'input
-        print(f"{name}(*{inp.decode('utf-8')}) -> {out.decode('utf-8')}")
+        # On décode les bytes et on utilise le format exact de la consigne
+        print(f"{method_name}(*{inp.decode('utf-8')}) -> {out.decode('utf-8')}")
 
 
 class Cache:
-    """ Classe de mise en cache """
+    """ Classe Cache """
     def __init__(self):
-        """ Initialisation """
+        """ Init Redis """
         self._redis = redis.Redis()
         self._redis.flushdb()
 
-    @call_history  # Call history en premier (plus haut)
+    @call_history  # INDISPENSABLE : call_history en premier
     @count_calls
     def store(self, data: Union[str, bytes, int, float]) -> str:
-        """ Stocke une donnée """
+        """ Stocke une valeur """
         key = str(uuid.uuid4())
         self._redis.set(key, data)
         return key
 
     def get(self, key: str, fn: Optional[Callable] = None) -> any:
-        """ Récupère une donnée """
+        """ Récupère une valeur """
         data = self._redis.get(key)
         if data is None:
             return None
