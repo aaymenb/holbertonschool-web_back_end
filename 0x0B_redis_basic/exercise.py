@@ -40,6 +40,7 @@ def replay(method: Callable):
     Displays the history of calls of a particular function.
     """
     # Access the Redis instance from the method's self (the class instance)
+    # method is a bound method, so .__self__ refers to the Cache instance
     self_instance = method.__self__
     r = self_instance._redis
     
@@ -47,17 +48,16 @@ def replay(method: Callable):
     inputs_key = f"{method_name}:inputs"
     outputs_key = f"{method_name}:outputs"
     
-    # Retrieve lists from Redis
+    # Retrieve all elements from both lists (0 to -1)
     inputs = r.lrange(inputs_key, 0, -1)
     outputs = r.lrange(outputs_key, 0, -1)
     
-    # Format the header
-    count = len(inputs)
-    print(f"{method_name} was called {count} times:")
+    # Format the summary line
+    print(f"{method_name} was called {len(inputs)} times:")
     
-    # Iterate and format each call history entry
+    # Use zip to iterate through both lists simultaneously
     for inp, out in zip(inputs, outputs):
-        # Redis returns bytes, so we decode to strings for formatting
+        # Decode byte strings from Redis to UTF-8 for printing
         input_str = inp.decode("utf-8")
         output_str = out.decode("utf-8")
         print(f"{method_name}(*{input_str}) -> {output_str}")
